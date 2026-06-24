@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AKU DB Boards Checklist</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f2f5;
+    color: #222;
+    font-size: 14px;
+    
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #1a3a5c;
+    color: white;
+    padding: 14px 16px 12px;
+    text-align: center;
+    
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header .org { font-size: 10px; letter-spacing: 2px; color: #a8c4d8; text-transform: uppercase; margin-bottom: 2px; }
+  .header h1  { font-size: 15px; font-weight: 700; }
+  .header .sub { font-size: 11px; color: #a8c4d8; margin-top: 2px; }
+
+  /* ── Progress bar ── */
+  .progress-wrap { background: #dde3ea; height: 5px; }
+  .progress-fill  { height: 5px; background: #2e7d32; width: 0%; transition: width 0.4s; }
+
+  /* ── Summary bar ── */
+  .summary-bar {
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #555;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .summary-bar .floors-done {
+    font-weight: 700;
+    color: #1a3a5c;
+    font-size: 13px;
+  }
+  .floor-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .floor-pill {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+  }
+  .floor-pill.fault {
+    background: #ffebee;
+    color: #c62828;
+    border-color: #ef9a9a;
+  }
+
+  /* ── Form body ── */
+  .form-body { padding: 12px 16px 20px; }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #888;
+    padding: 10px 0 6px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+    font-weight: 600;
+    color: #222;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header.blue { background: #1a3a5c; color: white; border: none; }
+  .num-badge {
+    background: #1a3a5c;
+    color: white;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-body { padding: 12px 14px; }
+
+  /* ── Buttons ── */
+  .btn-row { display: flex; gap: 8px; }
+  .opt-btn {
+    flex: 1;
+    padding: 9px 6px;
+    border-radius: 6px;
+    border: 1.5px solid #ccc;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .opt-btn.ok.active    { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+  .opt-btn.fault.active { background: #ffebee; border-color: #c62828; color: #c62828; }
+  .opt-btn.na.active    { background: #f5f5f5; border-color: #888;    color: #444; }
+
+  /* ── Fault note ── */
+  .fault-note { margin-top: 8px; display: none; }
+  .fault-note.show { display: block; }
+  .fault-hint { font-size: 11px; color: #c62828; margin-bottom: 4px; font-weight: 600; }
+  .fault-note textarea {
+    width: 100%;
+    border: 1.5px solid #c62828;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    color: #222;
+    resize: none;
+    height: 50px;
+    background: #fff8f8;
+  }
+  .fault-note textarea:focus { outline: none; }
+
+  /* ── Floor select ── */
+  .floor-select-wrap select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #1a3a5c;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1a3a5c;
+    font-weight: 600;
+    background: #f0f5fa;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a3a5c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+
+  /* ── Text input ── */
+  .text-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #222;
+  }
+  .text-input:focus { outline: none; border-color: #1a3a5c; }
+
+  /* ── Save floor button ── */
+  .save-floor-btn {
+    width: 100%;
+    padding: 13px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+  }
+  .save-floor-btn:active { background: #1b5e20; }
+
+  /* ── Saved floors list ── */
+  .saved-floor-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .saved-floor-item.has-fault {
+    border-color: #ef9a9a;
+    background: #fff8f8;
+  }
+  .saved-floor-name { font-weight: 700; font-size: 13px; color: #1a3a5c; }
+  .saved-floor-status { font-size: 12px; font-weight: 600; }
+  .saved-floor-status.ok    { color: #2e7d32; }
+  .saved-floor-status.fault { color: #c62828; }
+  .remove-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    padding: 10px 16px;
+    display: flex;
+    gap: 10px;
+  }
+  .submit-all-btn {
+    flex: 1;
+    padding: 14px;
+    background: #1a3a5c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  .submit-all-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .submit-all-btn:not(:disabled):active { background: #0d2137; }
+
+  /* ── Success screen ── */
+  #success-screen {
+    display: none;
+    padding: 50px 20px 40px;
+    text-align: center;
+    background: #f0f2f5;
+    
+  }
+  .success-icon { font-size: 56px; margin-bottom: 12px; }
+  #success-screen h2 { font-size: 20px; color: #2e7d32; margin-bottom: 6px; }
+  #success-screen .success-sub { font-size: 13px; color: #555; margin-bottom: 16px; }
+
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    margin-bottom: 16px;
+    font-size: 12px;
+    text-align: left;
+  }
+  .summary-table thead tr { background: #1a3a5c; color: white; }
+  .summary-table thead th { padding: 9px 10px; font-size: 11px; font-weight: 700; }
+  .summary-table tbody tr { border-bottom: 1px solid #eee; }
+  .summary-table tbody tr:last-child { border-bottom: none; }
+  .summary-table tbody td { padding: 8px 10px; }
+  .summary-table .ok-cell    { color: #2e7d32; font-weight: 600; }
+  .summary-table .fault-cell { color: #c62828; font-weight: 700; }
+
+  .new-btn {
+    padding: 12px 28px;
+    border: 1.5px solid #1a3a5c;
+    background: white;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1a3a5c;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .info-msg {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #1565c0;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+
+  .no-floors-msg {
+    text-align: center;
+    color: #aaa;
+    font-size: 13px;
+    padding: 16px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ MAIN FORM -->
+<div id="main-form">
+
+  <div class="header">
+    <div class="org">Aga Khan University Centre — MEP</div>
+    <h1>DB Boards Daily Checklist</h1>
+    <div class="sub">Electrical Ducts & Distribution Boards</div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+
+  <div class="summary-bar">
+    <span class="floors-done" id="floors-done-label">0 / 24 locations checked</span>
+    <div class="floor-pills" id="floor-pills"></div>
+  </div>
+
+  <div class="form-body">
+
+    <!-- Technician -->
+    <div class="section-label">Technician</div>
+    <div class="card">
+      <div class="card-body">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;display:block;margin-bottom:6px;">Your Name</label>
+        <input type="text" class="text-input" id="tech-name" placeholder="Enter your full name" oninput="updateUI()">
+      </div>
+    </div>
+
+    <!-- Floor checks -->
+    <div class="section-label">Check a Floor</div>
+
+    <!-- Floor selector -->
+    <div class="card">
+      <div class="card-header blue">📍 Select Floor</div>
+      <div class="card-body floor-select-wrap">
+        <select id="floor-select" onchange="updateUI()">
+          <option value="">-- Choose location --</option>
+          <optgroup label="Floors">
+            <option value="Floor G+11">Floor G+11</option>
+            <option value="Floor G+10">Floor G+10</option>
+            <option value="Floor G+9">Floor G+9</option>
+            <option value="Floor G+8">Floor G+8</option>
+            <option value="Floor G+7">Floor G+7</option>
+            <option value="Floor G+6">Floor G+6</option>
+            <option value="Floor G+5">Floor G+5</option>
+            <option value="Floor G+4">Floor G+4</option>
+            <option value="Floor G+3">Floor G+3</option>
+            <option value="Floor G+2">Floor G+2</option>
+            <option value="Floor G+1">Floor G+1</option>
+            <option value="Floor G+0">Floor G+0</option>
+            <option value="Floor G-1">Floor G-1</option>
+            <option value="Floor G-2">Floor G-2</option>
+            <option value="Floor G-3">Floor G-3</option>
+          </optgroup>
+          <optgroup label="Penthouse">
+            <option value="Penthouse Tower A">Penthouse Tower A</option>
+            <option value="Penthouse Tower B">Penthouse Tower B</option>
+          </optgroup>
+          <optgroup label="Guardhouses">
+            <option value="Guardhouse 1">Guardhouse 1</option>
+            <option value="Guardhouse 2">Guardhouse 2</option>
+            <option value="Guardhouse 3">Guardhouse 3</option>
+          </optgroup>
+          <optgroup label="Emergency Staircases">
+            <option value="Emergency Staircase — NorthWest">Emergency Staircase — NorthWest</option>
+            <option value="Emergency Staircase — SouthWest">Emergency Staircase — SouthWest</option>
+            <option value="Emergency Staircase — SouthEast">Emergency Staircase — SouthEast</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- Check 1 -->
+    <div class="card">
+      <div class="card-header"><div class="num-badge">1</div>All MCBs are active</div>
+      <div class="card-body">
+        <div class="btn-row">
+          <button class="opt-btn ok"    onclick="setStatus(this,'mcb','All ON')">✓ All ON</button>
+          <button class="opt-btn fault" onclick="setStatus(this,'mcb','Tripped')">✗ Tripped</button>
+          <button class="opt-btn na"    onclick="setStatus(this,'mcb','N/A')">N/A</button>
+        </div>
+        <div class="fault-note" id="fn-mcb">
+          <div class="fault-hint">⚠ Which MCB tripped? Action taken?</div>
+          <textarea id="nt-mcb" placeholder="e.g. MCB circuit 4 tripped — reset, reported..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Check 2 -->
+    <div class="card">
+      <div class="card-header"><div class="num-badge">2</div>Check for any burning smell</div>
+      <div class="card-body">
+        <div class="btn-row">
+          <button class="opt-btn ok"    onclick="setStatus(this,'smell','No Smell')">✓ No Smell</button>
+          <button class="opt-btn fault" onclick="setStatus(this,'smell','Smell Detected')">✗ Smell Detected</button>
+        </div>
+        <div class="fault-note" id="fn-smell">
+          <div class="fault-hint">⚠ Describe location and strength</div>
+          <textarea id="nt-smell" placeholder="e.g. Burning smell near CB3 — supervisor notified..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Check 3 -->
+    <div class="card">
+      <div class="card-header"><div class="num-badge">3</div>DB cover fixing screws</div>
+      <div class="card-body">
+        <div class="btn-row">
+          <button class="opt-btn ok"    onclick="setStatus(this,'screws','All Present')">✓ All Present</button>
+          <button class="opt-btn fault" onclick="setStatus(this,'screws','Missing')">✗ Missing</button>
+          <button class="opt-btn na"    onclick="setStatus(this,'screws','N/A')">N/A</button>
+        </div>
+        <div class="fault-note" id="fn-screws">
+          <div class="fault-hint">⚠ How many missing?</div>
+          <textarea id="nt-screws" placeholder="e.g. 2 screws missing bottom cover — job card raised..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Check 4 -->
+    <div class="card">
+      <div class="card-header"><div class="num-badge">4</div>Status of the cable glands</div>
+      <div class="card-body">
+        <div class="btn-row">
+          <button class="opt-btn ok"    onclick="setStatus(this,'glands','Secure')">✓ Secure</button>
+          <button class="opt-btn fault" onclick="setStatus(this,'glands','Loose')">✗ Loose</button>
+          <button class="opt-btn fault" onclick="setStatus(this,'glands','Damaged')">✗ Damaged</button>
+        </div>
+        <div class="fault-note" id="fn-glands">
+          <div class="fault-hint">⚠ Which gland? Location?</div>
+          <textarea id="nt-glands" placeholder="e.g. Bottom entry gland loose — job card raised..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Check 5 -->
+    <div class="card">
+      <div class="card-header"><div class="num-badge">5</div>General condition of DB board</div>
+      <div class="card-body">
+        <div class="btn-row">
+          <button class="opt-btn ok"    onclick="setStatus(this,'general','Good')">✓ Good</button>
+          <button class="opt-btn fault" onclick="setStatus(this,'general','Issue')">✗ Issue</button>
+        </div>
+        <div class="fault-note" id="fn-general">
+          <div class="fault-hint">⚠ Describe the issue</div>
+          <textarea id="nt-general" placeholder="e.g. Water ingress, corrosion, door not latching..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save floor button -->
+    <button class="save-floor-btn" onclick="saveFloor()">＋ Save This Floor & Check Next</button>
+
+    <!-- Saved floors -->
+    <div class="section-label" style="margin-top:16px;">Saved Floors</div>
+    <div id="saved-floors-list">
+      <div class="no-floors-msg" id="no-floors-msg">No floors saved yet — fill checks above and tap Save</div>
+    </div>
+
+    
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <button class="submit-all-btn" id="submit-all-btn" onclick="submitAll()" disabled>
+      Submit Full Report
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SUCCESS -->
+<div id="success-screen">
+  <div class="success-icon">✅</div>
+  <h2>Report Submitted</h2>
+  <p class="success-sub" id="success-meta"></p>
+
+  <table class="summary-table" id="summary-table">
+    <thead>
+      <tr>
+        <th>Floor</th>
+        <th>MCBs</th>
+        <th>Smell</th>
+        <th>Screws</th>
+        <th>Glands</th>
+        <th>General</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="summary-tbody"></tbody>
+  </table>
+
+  <div class="info-msg">📧 A full report has been sent to your supervisor.</div>
+  <button class="new-btn" onclick="resetAll()">+ Start New Inspection</button>
+</div>
+
+
+<script>
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbx6G1W6mAkYhUCCVOjSyrK3AywRLhBt6TdBB0Lcq-_SA_h1BHMnEFg5frzfXxdh2KQ/exec";
+  const FLOORS_TOTAL = 24;
+  const FAULT_VALUES = ['Tripped','Smell Detected','Missing','Loose','Damaged','Issue'];
+
+  // Use a simple object keyed by floor name to store data
+  var savedFloors = [];
+  var savedFloorNames = {};
+  var statuses = {};
+
+  // ── Set status for current floor checks
+  function setStatus(btn, id, value) {
+    statuses[id] = value;
+    btn.closest('.card-body').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const isFault = FAULT_VALUES.includes(value);
+    const fn = document.getElementById('fn-' + id);
+    if (fn) {
+      if (isFault) { fn.classList.add('show'); document.getElementById('nt-' + id)?.focus(); }
+      else fn.classList.remove('show');
+    }
+    updateUI();
+  }
+
+  // ── Update progress and submit button
+  function updateUI() {
+    const count = savedFloors.length;
+    const pct   = Math.round((count / FLOORS_TOTAL) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('floors-done-label').textContent = count + ' / ' + FLOORS_TOTAL + ' locations checked';
+
+    const name = document.getElementById('tech-name').value.trim();
+    const btn  = document.getElementById('submit-all-btn');
+    btn.disabled = (count === 0 || !name);
+    btn.textContent = count > 0
+      ? 'Submit Full Report (' + count + ' floor' + (count > 1 ? 's' : '') + ')'
+      : 'Submit Full Report';
+  }
+
+  // ── Save current floor
+  function saveFloor() {
+    var floor = document.getElementById('floor-select').value;
+    var name  = document.getElementById('tech-name').value.trim();
+
+    if (!name)  { alert('Please enter your name first.'); return; }
+    if (!floor) { alert('Please select a floor first.'); return; }
+
+    var faultKeys = ['mcb','smell','screws','glands','general'].filter(function(k) {
+      return FAULT_VALUES.indexOf(statuses[k]) >= 0;
+    });
+
+    var floorData = {
+      floor:        floor,
+      mcb:          statuses['mcb']     || '—',
+      smell:        statuses['smell']   || '—',
+      screws:       statuses['screws']  || '—',
+      glands:       statuses['glands']  || '—',
+      general:      statuses['general'] || '—',
+      faults:       faultKeys.map(function(k) {
+                      return {mcb:'MCB tripped',smell:'Burning smell',
+                              screws:'Missing screws',glands:'Cable gland issue',
+                              general:'General issue'}[k];
+                    }).join(', '),
+      note_mcb:     document.getElementById('nt-mcb').value     || '',
+      note_smell:   document.getElementById('nt-smell').value   || '',
+      note_screws:  document.getElementById('nt-screws').value  || '',
+      note_glands:  document.getElementById('nt-glands').value  || '',
+      note_general: document.getElementById('nt-general').value || '',
+      hasFault:     faultKeys.length > 0
+    };
+
+    // Remove existing entry for this floor if any
+    savedFloors = savedFloors.filter(function(f) { return f.floor !== floor; });
+
+    // Add new entry
+    savedFloors.push(floorData);
+    savedFloorNames[floor] = true;
+
+    // Mark in dropdown
+    var sel = document.getElementById('floor-select');
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === floor) {
+        sel.options[i].disabled = true;
+        sel.options[i].text = floor + ' ✓';
+        break;
+      }
+    }
+    sel.value = '';
+
+    // Clear checks for next floor
+    statuses = {};
+    document.querySelectorAll('.opt-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.fault-note').forEach(function(f) { f.classList.remove('show'); });
+    document.querySelectorAll('textarea').forEach(function(t) { t.value = ''; });
+
+    renderSavedFloors();
+    updateUI();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Render saved floors list
+  function renderSavedFloors() {
+    var list  = document.getElementById('saved-floors-list');
+    var noMsg = document.getElementById('no-floors-msg');
+    var pills = document.getElementById('floor-pills');
+
+    // Clear only dynamic content — never remove noMsg from DOM
+    var existing = list.querySelectorAll('.saved-floor-item');
+    existing.forEach(function(el) { el.remove(); });
+    pills.innerHTML = '';
+
+    if (savedFloors.length === 0) {
+      noMsg.style.display = 'block';
+      return;
+    }
+
+    noMsg.style.display = 'none';
+
+    savedFloors.forEach(function(f, idx) {
+      var item = document.createElement('div');
+      item.className = 'saved-floor-item' + (f.hasFault ? ' has-fault' : '');
+      item.innerHTML =
+        '<div>' +
+          '<div class="saved-floor-name">' + f.floor + '</div>' +
+          '<div class="saved-floor-status ' + (f.hasFault ? 'fault' : 'ok') + '">' +
+            (f.hasFault ? '⚠ Fault detected' : '✓ All clear') +
+          '</div>' +
+        '</div>' +
+        '<button class="remove-btn" onclick="removeFloor(' + idx + ')" title="Remove">✕</button>';
+      list.appendChild(item);
+
+      var pill = document.createElement('span');
+      pill.className = 'floor-pill' + (f.hasFault ? ' fault' : '');
+      pill.textContent = f.floor.replace('Floor ', '');
+      pills.appendChild(pill);
+    });
+  }
+
+  // ── Remove a saved floor
+  function removeFloor(idx) {
+    const floor = savedFloors[idx].floor;
+    savedFloors.splice(idx, 1);
+
+    // Re-enable in dropdown
+    const sel = document.getElementById('floor-select');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === floor) {
+        sel.options[i].disabled = false;
+        sel.options[i].text = floor;
+        break;
+      }
+    }
+    renderSavedFloors();
+    updateUI();
+  }
+
+  // ── Clear current check inputs
+  function clearCurrentChecks() {
+    statuses = {};
+    document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.fault-note').forEach(f => f.classList.remove('show'));
+    document.querySelectorAll('textarea').forEach(t => t.value = '');
+    document.querySelectorAll('input[type=number]').forEach(i => i.value = '');
+  }
+
+  // ── Submit all floors
+  function submitAll() {
+    const name = document.getElementById('tech-name').value.trim();
+    if (!name)              { alert('Please enter your name.'); return; }
+    if (savedFloors.length === 0) { alert('No floors saved yet.'); return; }
+
+    const btn = document.getElementById('submit-all-btn');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    const payload = {
+      technician: name,
+      date: new Date().toLocaleString('en-KE'),
+      floors: savedFloors
+    };
+
+    fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .finally(() => {
+      showSuccess(name);
+      btn.textContent = 'Submit Full Report';
+    });
+  }
+
+  // ── Show success screen
+  function showSuccess(name) {
+    const now = new Date();
+    document.getElementById('success-meta').textContent =
+      'By ' + name + '  •  ' +
+      now.toLocaleDateString('en-KE', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) +
+      '  •  ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+    const tbody = document.getElementById('summary-tbody');
+    tbody.innerHTML = '';
+    savedFloors.forEach(f => {
+      const tr = document.createElement('tr');
+      const statusClass = f.hasFault ? 'fault-cell' : 'ok-cell';
+      const statusText  = f.hasFault ? '⚠ Fault' : '✓ OK';
+      tr.innerHTML = `
+        <td><strong>${f.floor.replace('Floor ','')}</strong></td>
+        <td class="${f.mcb === 'All ON' || f.mcb === 'N/A' ? 'ok-cell':'fault-cell'}">${f.mcb}</td>
+        <td class="${f.smell === 'No Smell' ? 'ok-cell':'fault-cell'}">${f.smell}</td>
+        <td class="${f.screws === 'All Present'||f.screws==='N/A'?'ok-cell':'fault-cell'}">${f.screws}</td>
+        <td class="${f.glands === 'Secure' ? 'ok-cell':'fault-cell'}">${f.glands}</td>
+        <td class="${f.general === 'Good' ? 'ok-cell':'fault-cell'}">${f.general}</td>
+        <td class="${statusClass}"><strong>${statusText}</strong></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('main-form').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  // ── Reset everything
+  function resetAll() {
+    savedFloors = [];
+    clearCurrentChecks();
+
+    // Re-enable all dropdown options
+    const sel = document.getElementById('floor-select');
+    for (let i = 0; i < sel.options.length; i++) {
+      sel.options[i].disabled = false;
+      sel.options[i].text = sel.options[i].text.replace(' ✓', '');
+    }
+    sel.value = '';
+    document.getElementById('tech-name').value = '';
+    renderSavedFloors();
+    updateUI();
+    document.getElementById('main-form').style.display = 'block';
+    document.getElementById('success-screen').style.display = 'none';
+    window.scrollTo(0, 0);
+  }
+
+  // Init
+  renderSavedFloors();
+  updateUI();
+</script>
+
+<script>
+  // Auto-resize for Google Sites embed
+  function sendHeight() {
+    var height = document.body.scrollHeight;
+    window.parent.postMessage({ type: 'setHeight', height: height }, '*');
+  }
+  // Send height on load and whenever DOM changes
+  window.addEventListener('load', sendHeight);
+  var observer = new MutationObserver(sendHeight);
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+  setInterval(sendHeight, 500);
+</script>
+</body>
+</html>
